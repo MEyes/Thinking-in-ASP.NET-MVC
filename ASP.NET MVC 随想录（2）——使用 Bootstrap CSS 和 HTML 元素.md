@@ -1,7 +1,5 @@
 
-
-
-# ASP.NET MVC 使用 Bootstrap 系统（2）——使用 Bootstrap CSS 和 HTML 元素
+# ASP.NET MVC 随想录（2）——使用 Bootstrap CSS 和 HTML 元素
 
 Bootstrap 提供了一套丰富 CSS 设置、HTML 元素以及高级的栅格系统来帮助开发人员快速布局网页。所有的 CSS 样式和 HTML 元素与移动设备优先的流式栅格系统结合，能让开发人员快速轻松的构建直观的界面并且不用担心在较小的设备上响应的具体细节。
 
@@ -70,7 +68,7 @@ Bootstrap 为 HTML tables 提供了默认的样式和自定义他们布局和行
 
 打开 Visual Studio，创建一个 ASP.NET MVC 的项目，默认情况下，VS 已经为我们添加了Bootstrap 的文件。为了查看效果，按照如下的步骤去实施：
 
-* 在 ASP.NET MVC 项目中的 Models 文件下添加一个 ProductViewModel
+在 ASP.NET MVC 项目中的 Models 文件下添加一个 ProductViewModel
 
        public class ProductViewModel
         {
@@ -82,18 +80,18 @@ Bootstrap 为 HTML tables 提供了默认的样式和自定义他们布局和行
             public string Status { get; set; }
         }
 
-* 在 APP_Data 文件夹中添加 AutoMapperConfig 类，通过 AutoMapper，为 ProductViewModel的 Status 属性创建了一个条件映射，如果 Product 是 discontinued，那么 Status为danger；如果 UnitPrice 大于 50，则设置 Status 属性为 info；如果 UnitInStock 小于 20，那么设置 Status 为 warning。代码的逻辑如下:
+在 APP_Data 文件夹中添加 AutoMapperConfig 类，通过 AutoMapper，为 ProductViewModel的 Status 属性创建了一个条件映射，如果 Product 是 discontinued，那么 Status为danger；如果 UnitPrice 大于 50，则设置 Status 属性为 info；如果 UnitInStock 小于 20，那么设置 Status 为 warning。代码的逻辑如下:  
 
-        Mapper.CreateMap<product, productviewmodel="">()
-                    .ForMember(dest =&gt; dest.Status,
-                        opt =&gt; opt.MapFrom
-                            (src =&gt; src.Discontinued
-                                ? "danger"
-                                : src.UnitPrice &gt; 50
-                                    ? "info"
-                                    : src.UnitsInStock &lt; 20 ? "warning" : ""));
+    Mapper.CreateMap<Product, ProductViewModel>()
+    .ForMember(dest => dest.Status,
+    opt => opt.MapFrom
+    (src => src.Discontinued
+    ? "danger"
+    : src.UnitPrice > 50
+    ? "info"
+    : src.UnitsInStock < 20 ? "warning" : ""));
 
-* 添加一个 ProductController 并且创建名为 Index 的 Action
+添加一个 ProductController 并且创建名为 Index 的 Action
 
      public class ProductController : Controller
         {
@@ -112,55 +110,49 @@ Bootstrap 为 HTML tables 提供了默认的样式和自定义他们布局和行
             }
         }
 
-1. 上述代码使用依赖注入获取 Entity Framework DbContext 对象，Index Action 接受从数据库中返回 Products 集合然后使用 AutoMapper 映射到每一个 ProductViewModel 对象中，最后为 View 返回数据。
-2. 在视图上使用 Bootstrap HTML table 来显示数据
-
-![][3]![][4]
+上述代码使用依赖注入获取 Entity Framework DbContext 对象，Index Action 接受从数据库中返回 Products 集合然后使用 AutoMapper 映射到每一个 ProductViewModel 对象中，最后为 View 返回数据。  
+最后，在视图上使用 Bootstrap HTML table 来显示数据
 
     <div class="container">
-        <h3>Products</h3>
-        
-                @foreach (var item in Model)
-                {
-                    
-                }
-            <table class="table">
-            <thead>
+    <h3>Products</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Product Name
+                </th>
+                <th>
+                    Unit Price
+                </th>
+                <th>
+                    Units In Stock
+                </th>
+                <th>
+                    Discontinued
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
                 <tr>
-                    <th>
-                        Product Name
-                    </th>
-                    <th>
-                        Unit Price
-                    </th>
-                    <th>
-                        Units In Stock
-                    </th>
-                    <th>
-                        Discontinued
-                    </th>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ProductName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UnitPrice)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UnitsInStock)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Discontinued)
+                    </td>
                 </tr>
-            </thead>
-            <tbody><tr>
-                        <td>
-                            @Html.DisplayFor(modelItem =&gt; item.ProductName)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem =&gt; item.UnitPrice)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem =&gt; item.UnitsInStock)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem =&gt; item.Discontinued)
-                        </td>
-                    </tr></tbody>
-        </table>
-
+            }
+        </tbody>
+    </table>
     </div>
-
-View Code
-
 呈现的数据如下所示:
 
 ![][5]
@@ -175,35 +167,35 @@ Bootstrap 提供了额外的样式来修饰 table。比如使用 **table-bordere
 显示的效果如下：
 
 ![][6]
-
-### Bootstrap上下文Table 样式
+ 
+### Bootstrap上下文 Table 样式
 
 Bootstrap 提供了额外的 class 能让我们修饰和的样式，提供的 class 如下：
 
 * Active
-* &nbsp;Success&nbsp;
+* Success
 * Info
 * Warning
 * Danger
 
-修改上述代码，为动态添加样式：
+修改上述代码，为动态添加样式：  
 
     @foreach (var item in Model)
     {
-        ****
-            
-                @Html.DisplayFor(modelItem =&gt; item.ProductName)
-            
-            
-                @Html.DisplayFor(modelItem =&gt; item.UnitPrice)
-            
-            
-                @Html.DisplayFor(modelItem =&gt; item.UnitsInStock)
-            
-            
-                @Html.DisplayFor(modelItem =&gt; item.Discontinued)
-            
-        
+    <tr class="@item.Status">
+        <td>
+            @Html.DisplayFor(modelItem => item.ProductName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.UnitPrice)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.UnitsInStock)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Discontinued)
+        </td>
+    </tr>
     }
 
 更新过后的效果如下所示：
@@ -262,22 +254,21 @@ Bootstrap 提供了许多各种不同颜色和大小的 buttons，为核心的 b
  
 使用 ASP.NET MVC 的 HTML.BeginForm 可以方便的创建一个表单，通过为<form>添加名为 **form-horizontal** 的 class 来创建一个 Bootstrap 水平显示表单。
 
-![][3]![][4]
 
     @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
     {
         <div class="form-group">
-            @Html.LabelFor(m =&gt; m.UserName, new { @class = "col-md-2 control-label" })
+            @Html.LabelFor(m =>m.UserName, new { @class = "col-md-2 control-label" })
             <div class="col-md-10">
-                @Html.TextBoxFor(m =&gt; m.UserName, new { @class = "form-control" })
-                @Html.ValidationMessageFor(m =&gt; m.UserName)
+                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.UserName)
             </div>
         </div>
         <div class="form-group">
-            @Html.LabelFor(m =&gt; m.Password, new { @class = "col-md-2 control-label" })
+            @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
             <div class="col-md-10">
-                @Html.PasswordFor(m =&gt; m.Password, new { @class = "form-control" })
-                @Html.ValidationMessageFor(m =&gt; m.Password)
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Password)
             </div>
         </div>
         <div class="form-group">
@@ -287,7 +278,6 @@ Bootstrap 提供了许多各种不同颜色和大小的 buttons，为核心的 b
         </div>
     }
 
-View Code
 
 上述代码中，使用 class 为 form-group 的<div>元素包裹了 2 个 Html 方法（Html.LabelFor、Html.TextboxFor），这能让 Bootstrap 验证样式应用在 form 元素上，当然你也可以使用 Bootstrap 栅格col- class 来指定 form 中元素的宽度，效果如下显示：
 
@@ -299,28 +289,25 @@ Bootstrap 基础表单默认情况下是垂直显示内容，在 Html.BeginForm 
 
 内联表单表示所有的 form 元素一个接着一个水平排列， 只适用于视口（viewport）至少在 768px  宽度时（视口宽度再小的话就会使表单折叠）。 
 
-**_记得_一定要添加 **&nbsp;label&nbsp;** 标签，如果你没有为每个输入控件设置&nbsp;label&nbsp; 标签，屏幕阅读器将无法正确识别。对于这些内联表单，你可以通过为label&nbsp;设置 &nbsp;.sr-only&nbsp;**** 类将其隐藏。**详细代码如下：
+**_记得_一定要添加 **&nbsp;label&nbsp;** 标签，如果你没有为每个输入控件设置&nbsp;label&nbsp; 标签，屏幕阅读器将无法正确识别。对于这些内联表单，你可以通过为label&nbsp;设置 &nbsp;.sr-only&nbsp;**** 类将其隐藏。详细代码如下：
 
-![][3]![][4]
 
     @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "form-inline", role = "form" }))
     {
         <div class="form-group">
-            @Html.LabelFor(m =&gt; m.UserName, new { @class = "sr-only" })
-            @Html.TextBoxFor(m =&gt; m.UserName, new { @class = "form-control", placeholder = "Enter your username" })
-            @Html.ValidationMessageFor(m =&gt; m.UserName)
+            @Html.LabelFor(m => m.UserName, new { @class = "sr-only" })
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Enter your username" })
+            @Html.ValidationMessageFor(m => m.UserName)
         </div>
         <div class="form-group">
-            @Html.LabelFor(m =&gt; m.Password, new { @class = "sr-only" })
-            @Html.PasswordFor(m =&gt; m.Password, new { @class = "form-control", placeholder = "Enter your username" })
-            @Html.ValidationMessageFor(m =&gt; m.Password)
+            @Html.LabelFor(m => m.Password, new { @class = "sr-only" })
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Enter your username" })
+            @Html.ValidationMessageFor(m => m.Password)
         </div>
         <div class="form-group">
             <input type="submit" value="Log in" class="btn btn-default">
         </div>
     }
-
-View Code
 
 显示效果如下：
 
@@ -361,9 +348,9 @@ View Code
 Bootstrap 提供了 class为has-error 中的样式（label 字体变为红色，input 元素加上红色边框）来显示错误:
 
     <div class="form-group has-error">
-        @Html.LabelFor(m =&gt; m.UserName, new { @class = "col-md-2 control-label" })
+        @Html.LabelFor(m => m.UserName, new { @class = "col-md-2 control-label" })
         <div class="col-md-10">
-            @Html.TextBoxFor(m =&gt; m.UserName, new { @class = "form-control" })
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
         </div>
     </div>
 
@@ -387,23 +374,23 @@ Bootstrap 提供了 class为has-error 中的样式（label 字体变为红色，
     "~/Scripts/jquery.validate.unobtrusive.js",
     "~/Scripts/jquery.validate.bootstrap.js"));
 
-&gt; 注：默认情况下，ASP.NET MVC **使用通配符***来将 **jquery.validate*** 文件打包到 jqueryval 文件中，如下所示：
-&gt;
-&gt; bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
-&gt;
-&gt; "~/Scripts/jquery.validate*"));
-&gt;
-&gt; 但是 jquery.validate.bootstrap.js 必须在 jquery validate 插件后加载，所以我们只能显式的指定文件顺序来打包，**因为默认情况下打包加载文件的顺序是按通配符代表的字母顺序排列的。**
+ 注：默认情况下，ASP.NET MVC **使用通配符***来将 **jquery.validate*** 文件打包到 jqueryval 文件中，如下所示：
+
+     bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
+    
+     "~/Scripts/jquery.validate*"));
+
+ 但是 jquery.validate.bootstrap.js 必须在 jquery validate 插件后加载，所以我们只能显式的指定文件顺序来打包，**因为默认情况下打包加载文件的顺序是按通配符代表的字母顺序排列的。**
 
 ## ASP.NET MVC 创建包含 Bootstrap 样式编辑模板
 
 **编辑模板（Editor Template）指的是在 ASP.NET MVC 应用程序中，基于对象属性的数据类型通过 Razor 视图渲染后，自动产生表单 Input 元素。ASP.NET MVC 包含了若干的编辑模板，当然我们也可以实现扩展。编辑模板类似于局部视图，不同的是，局部视图通过 name 来渲染，而编辑模板通过类型来渲染。**
 
-举个例子，@Html.EditorFor(model =&gt; model.Property)，如果 Property 类型为 string，那么@Html.Editor 会创建一个 Type=Text 的 Input 元素；如果 Property 类型为 Password，那么会创建一个 Type=Password 的 Input 元素。所以 EditorFor helper 是基于 model 属性的数据类型来渲染生成 HTML。
+举个例子，@Html.EditorFor(model => model.Property)，如果 Property 类型为 string，那么@Html.Editor 会创建一个 Type=Text 的 Input 元素；如果 Property 类型为 Password，那么会创建一个 Type=Password 的 Input 元素。所以 EditorFor helper 是基于 model 属性的数据类型来渲染生成 HTML。
 
 不过美中不足的是，默认产生的 HTML 如下所示：
 
-&nbsp;![][13]
+![][13]
 
 **可以看到 class="text-box single-line"，但先前提到过，Bootstrap Form 元素 class 必须是 form-control。**
 
@@ -439,30 +426,24 @@ ASP.NET MVC 能让开发者创建**_根据自定义_****_DataType_**的编辑模
       public string Description { get; set; }
 
 最终显示如下所示：
-
-&nbsp;![][15]
+![][15]
 
 ## 小结
 
-&gt; 这篇文章为大家介绍了 Bootstrap 的响应式布局（grid），并且简单介绍了 Bootstrap 中的HTML 元素，包括 Table、Button、Form、Image…然后修改了 JQuery validate 插件默认的的设置，使其友好支持 Bootstrap 中的错误提示样式。最后探索了 ASP.NET MVC 中的编辑模板，能让产生的 input 元素自动包含 form-control 样式。
-&gt;
-&gt; Bootstrap 样式上更多的内容，参考 Bootstrap 官网全局 CSS 这一章节内容（<http: v3.bootcss.com="" css="">），谢谢大家支持。
+>  这篇文章为大家介绍了 Bootstrap 的响应式布局（grid），并且简单介绍了 Bootstrap 中的HTML 元素，包括 Table、Button、Form、Image…然后修改了 JQuery validate 插件默认的的设置，使其友好支持 Bootstrap 中的错误提示样式。最后探索了 ASP.NET MVC 中的编辑模板，能让产生的 input 元素自动包含 form-control 样式，谢谢大家支持。
 
-[1]: http://images.cnitblog.com/blog/299214/201503/290216156611870.png
+[1]: images/Chapter2/1.png
 [2]: https://msdn.microsoft.com/zh-cn/library/ms143221.aspx
 [3]: http://images.cnblogs.com/OutliningIndicators/ContractedBlock.gif
 [4]: http://images.cnblogs.com/OutliningIndicators/ExpandedBlockStart.gif
-[5]: http://images.cnitblog.com/blog/299214/201503/290216172245912.png
-[6]: http://images.cnitblog.com/blog/299214/201503/290216177395471.png
-[7]: http://images.cnitblog.com/blog/299214/201503/290216182085314.png
-[8]: http://images.cnitblog.com/blog/299214/201503/290216188339671.png
-[9]: http://images.cnitblog.com/blog/299214/201503/290216193337757.png
-[10]: http://images.cnitblog.com/blog/299214/201503/290216197088572.png
-[11]: http://images.cnitblog.com/blog/299214/201503/290216200522144.png
-[12]: http://images.cnitblog.com/blog/299214/201503/290216208497786.png
-[13]: http://images.cnitblog.com/blog2015/299214/201503/290429198809792.png
-[14]: http://images.cnitblog.com/blog2015/299214/201503/290430509893961.png
-[15]: http://images.cnitblog.com/blog2015/299214/201503/290432071929575.png
-  </http:></div>
-</div>
-</form></productviewmodel></product,>
+[5]: images/Chapter2/5.png
+[6]: images/Chapter2/6.png
+[7]: images/Chapter2/7.png
+[8]: images/Chapter2/8.png
+[9]: images/Chapter2/9.png
+[10]: images/Chapter2/10.png
+[11]: images/Chapter2/11.png
+[12]: images/Chapter2/12.png
+[13]: images/Chapter2/13.png
+[14]: images/Chapter2/14.png
+[15]: images/Chapter2/15.png

@@ -1,12 +1,10 @@
 
+# ASP.NET MVC 随想录（7）——锋利的 KATANA
 
-# ASP.NET MVC 随想录——锋利的 KATANA
-
-&gt;
-&gt;     正如[上篇文章][1]所讲解的，OWIN 在 Web Server 与 Web Application 之间定义了一套规范（Specs），意在解耦 Web Server 与 Web Application，从而推进跨平台的实现。若要真正使用 OWIN 规范，那么必须要对他们进行实现。目前有两个产品实现了 OWIN 规范——一是由微软主导的 Katana，二是第三方的 Nowin。本文主要关注的还是 Katana，由微软团队主导，开源到 CodePlex 上。大家可以在 Visual Studio 中输入命令：git clone <https: git01.codeplex.com="" katanaproject="">来查看源代码。
+正如上篇文章所讲解的，OWIN 在 Web Server 与 Web Application 之间定义了一套规范（Specs），意在解耦 Web Server 与 Web Application，从而推进跨平台的实现。若要真正使用 OWIN 规范，那么必须要对他们进行实现。目前有两个产品实现了 OWIN 规范——一是由微软主导的 Katana，二是第三方的 Nowin。本文主要关注的还是 Katana，由微软团队主导，开源到 CodePlex 上。
 
   
->   在介绍 Katana 之前，我觉得有必要先为大家梳理一下十几年以来 ASP.NET 发展历程。
+> 在介绍 Katana 之前，我觉得有必要先为大家梳理一下十几年以来 ASP.NET 发展历程。
 
 ## ASP.NET 发展历程
 
@@ -42,7 +40,7 @@ ASP.NET Web Form 在 2002 正式发布时，面向的开发者主要有两类：
 
 随着 Web API 能够运行在自己的轻量级的宿主中，并且越来越多简单、模块化、专一的 Framework 问世，开发人员有时候不得不启动单独的进程来处理 Web 应用程序的各种组件（模块）、如静态文件、动态文件、Web API 和 Socket。为了避免进程扩散，所有的进程必须启动、停止并且独立进行管理。**这时，我们需要一个公共的宿主进程来管理这些模块。**
 
-&gt; 这就是 OWIN 诞生的原因，**解耦成最小粒度的组件**，然后这些标准化框架和组件可以很容易地插入到 OWIN Pipeline 中，从而对组件进行统一管理。而 Katana 正是 OWIN 的实现，为我们提供了丰富的 Host 和 Server。
+> 这就是 OWIN 诞生的原因，**解耦成最小粒度的组件**，然后这些标准化框架和组件可以很容易地插入到 OWIN Pipeline 中，从而对组件进行统一管理。而 Katana 正是 OWIN 的实现，为我们提供了丰富的 Host 和 Server。
 
 ## 走进Katana的世界
 
@@ -58,7 +56,7 @@ Katana 作为 OWIN 的规范实现，除了实现 Host 和 Server 之外，还�
  
 Katana 实现了 OWIN 的 Layers，所以 Katana 的体系结构和 OWIN 一致，如下所示：
 
-![][2]
+![](images/Chapter7/2.png)
 
 1.）Host ：宿主 Host 被 OWIN 规范定义在第一层（最底层），他的职责是管理底层的进程（启动、关闭）、初始化 OWIN Pipeline、选择 Server 运行等。
 
@@ -82,7 +80,7 @@ Middleware（中间件）位于 Host、Server 之后，用来处理 Pipeline 中
 
 Middleware 处理请求之后并可以交由下一个 Pipeline 中的 Middleware 组件处理，即链式处理请求，通过环境字典可以获取到所有的 Http 请求数据和自定义数据。Middleware 可以是简单的 Log 组件，亦可以为复杂的大型 Web Framework，诸如：ASP.NET Web API、Nancy、SignlR 等，如下图所示：Pipeline 中的 Middleware 用来处理请求：
 
-![][3]
+![](images/Chapter7/3.png)
 
 4.）Application
 
@@ -95,13 +93,10 @@ Middleware 处理请求之后并可以交由下一个 Pipeline 中的 Middleware
 在 Startup 的 Configuration 方法中实现 OWIN Pipeline 处理逻辑，如下代码所示：
 
     public class Startup
-    
     {
-    
 	    public void Configuration(IAppBuilder app)
 	    
 	    {
-	    
 		    app.Run(context =>
 		    
 		    {
@@ -120,7 +115,7 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 
 细心的你可能观察到，在 Nuget 安装 Microsoft.Owin.Host.SystemWeb 程序集时，默认安装了依赖项 Microsoft.Owin 程序集，正式它为我们提供了扩展方法 Run 和 IOwinContext 接口，当然我们也可以使用最原始的方式来输出"Hello World"字符串，即 Owin 程序集为我们提供的最原始方式，这仅仅是学习上参考，虽然我们不会在正式场景下使用：
 
-    using AppFunc = Func<idictionary<string, object="">, Task>;
+    using AppFunc = Func<IDictionary<string, object>, Task>;
     
     public class Startup
     
@@ -130,7 +125,7 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 	    
 	    {
 	    
-		    app.Use(new Func<appfunc, appfunc="">(next => (env =>
+		    app.Use(new Func<AppFunc, AppFunc>(next => (env =>
 		    
 		    {
 		    
@@ -138,7 +133,7 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 			    
 			    var response = env["owin.ResponseBody"] as Stream;
 			    
-			    var headers = env["owin.ResponseHeaders"] as IDictionary<string, string[]="">;
+			    var headers = env["owin.ResponseHeaders"] as IDictionary<string, string[]>;
 			    
 			    headers["Content-Type"] = new[] { "text/plain" };
 			    
@@ -154,31 +149,23 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 
 使用自定义 Host 托管 Katana 应用程序与使用 IIS 托管差别不大，你可以使用控制台、WinForm、WPF 等实现托管，但要记住，这会失去 IIS 带有的一些功能（SSL、Event Log、Diagnostics、Management…），当然这可以自己来实现。
 
-* 创建控制台应用程序
+* 创建控制台应用程序*
 * Install-Package Microsoft.Owin.SelfHost
 * 在 Main 方法中使用 Startup 配置项构建 Pipeline 并监听端口  
 
-
-    static void Main(string[] args)
-    
-    {
-    
-    	using (WebApp.Start("http://localhost:10002"))
-    	
+    	using (WebApp.Start("http://localhost:10002"))  
     	{
     	
-    		System.Console.WriteLine("启动站点：http://localhost:10002");
-    		
-    		System.Console.ReadLine();
+    	   System.Console.WriteLine("启动站点：http://localhost:10002");
+    	
+    	   System.Console.ReadLine();
     	
     	}
-    
-    }
+
 
 使用自定义的 Host 将失去 IIS 的一些功能，当然我们可以自己去实现。幸运的是，Katana 为我们默认实现了部分功能，比如 Diagnostic，包含在程序集 Microsoft.Owin.Diagnostic 中。
 
     public void Configuration(IAppBuilder app)
-    
     {
     
 	    app.UseWelcomePage("/");
@@ -186,7 +173,6 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 	    app.UseErrorPage();
 	    
 	    app.Run(context =>
-    
     	{
     
 		    //将请求记录在控制台
@@ -211,13 +197,13 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
     
     }
 
-在上述代码中，当请求的路径（Request.Path）为根目录时，渲染输出 Webcome Page**并且不继续执行 Pipeline 中的其余 Middleware ****组件**，如下所示：
+在上述代码中，当请求的路径（Request.Path）为根目录时，渲染输出 Webcome Page**并且不继续执行 Pipeline 中的其余 Middleware 组件**，如下所示：
 
-![][4]
+![](images/Chapter7/4.png)
 
-如果请求的路径为 Erro r时，抛出异常，显示错误页，如下所示：
+如果请求的路径为 Error时，抛出异常，显示错误页，如下所示：
 
-![][5]
+![](images/Chapter7/5.png)
 
 ### 使用 OwinHost.exe 托管 Katana-based 应用程序
 
@@ -231,33 +217,28 @@ app.Run 方法将一个接受 IOwinContext 对象最为输入参数并返回 Tas
 
 因为类库不能直接运行，那么只能在它的根目录调用 OwinHost.exe 来托管，它将加载.bin 文件下所有的程序集，所以需要改变类库的默认输出，如下所示：
 
-![][6]
+![](images/Chapter7/6.png)
 
 然后编译解决方案，打开 cmd，键入如下命令：
 
-![][7]
+![](images/Chapter7/7.png)
 
 如上图成功启动了宿主 Host 并且默认监听 5000 端口。
 
 OwinHost.exe 还提供自定义参数，通过追加-h 来查看，如下所示：
 
-![][8]
+![](images/Chapter7/8.png)
 
 既然类库不能直接运行，当然你也不能直接进行调试，我们可以附加 OwinHost 进程来进行调试，如下所示：
 
-![][9]
+![](images/Chapter7/9.png)
 
->  注：
-> 我在使用 ** OwinHost.exe 3.0.1** 时，Startup 如果是如下情况下，它提示转换失败，不知是否是该版本的 Bug。
+注：我在使用 **OwinHost.exe 3.0.1** 时，Startup 如果是如下情况下，它提示转换失败，不知是否是该版本的 Bug。
 
-    using AppFunc = Func<idictionary<string, object="">, Task>;
-    
-       public class Startup
-    
-       {
-    
+       using AppFunc = Func<idictionary<string, object="">, Task>;
+       public class Startup  
+       {  
 	       public void Configuration(IAppBuilder app)
-	    
 	       {
 	    
 	       //使用OwinHost.exe，报错，提示转换失败
@@ -287,13 +268,13 @@ OwinHost.exe 还提供自定义参数，通过追加-h 来查看，如下所示�
        }
 报错信息如下：
 
-![][10]
+![](images/Chapter7/10.png)
 
 Web Application 比类库使用起来轻松多了，你可以直接运行和调试，唯一比较弱的可能是它引用较多的程序集，你完全可以删掉，比如 System.Web。
 
 通过 Nuget 安装了 OwinHost.exe 之后，可以在 Web 中使用它，如下所示：
 
-![][11]
+![](images/Chapter7/11.png)
 
 ### 几种指定启动项 Startup 的方法
 
@@ -303,7 +284,7 @@ Web Application 比类库使用起来轻松多了，你可以直接运行和调�
 * 如果使用自定义 Host，那么可以通过 WebApp.Start<startup>**(**"http://localhost:10002") 来设置启动项。
 * 如果使用 OwinHost，那么可以通过命令行参数来实现，如下截图所示
 
-![][12]
+![](images/Chapter7/12.png)
 
 ### 启动项 Startup 的高级应用
 
@@ -311,35 +292,35 @@ Web Application 比类库使用起来轻松多了，你可以直接运行和调�
 
 比如在部署时，我们会有 UAT 环境、Production 环境，在不同的环境中我们可以动态切换 Startup 来执行不同的操作。
 
-举个栗子，我创建来两个带有 Friendly Name 的 Startup，如下所示：
+举个例子，我创建来两个带有 Friendly Name 的 Startup，如下所示：
 
-     1 [assembly: OwinStartup("Production", typeof(JKXY.KatanaDemo.Web.StartupProduction))]
-     2 namespace JKXY.KatanaDemo.Web
-     3 {
-     4     using AppFunc = Func<idictionary<string, object="">, Task&gt;;
-     5     public class StartupProduction
-     6     {
-     7         public void Configuration(IAppBuilder app)
-     8         {
-     9            app.Run(context=&gt;context.Response.WriteAsync("Production"));
-    10         }
-    11     }
-    12 }
+      [assembly: OwinStartup("Production", typeof(JKXY.KatanaDemo.Web.StartupProduction))]
+      namespace JKXY.KatanaDemo.Web
+      {
+          using AppFunc = Func<idictionary<string, object="">, Task&gt;;
+          public class StartupProduction
+          {
+              public void Configuration(IAppBuilder app)
+              {
+                 app.Run(context=&gt;context.Response.WriteAsync("Production"));
+             }
+         }
+     }
 
-     1 [assembly: OwinStartup("UAT",typeof(JKXY.KatanaDemo.Web.StartupUAT))]
-     2
-     3 namespace JKXY.KatanaDemo.Web
-     4 {
-     5     public class StartupUAT
-     6     {
-     7         public void Configuration(IAppBuilder app)
-     8         {
-     9             app.Run(context=&gt;context.Response.WriteAsync("UAT"));
-    10         }
-    11     }
-    12 }
+      [assembly: OwinStartup("UAT",typeof(JKXY.KatanaDemo.Web.StartupUAT))]
+     
+      namespace JKXY.KatanaDemo.Web
+      {
+          public class StartupUAT
+          {
+              public void Configuration(IAppBuilder app)
+             {
+                 app.Run(context=&gt;context.Response.WriteAsync("UAT"));
+             }
+         }
+     }
 
-* ****根据 Friendly Name 使用配置文件或者 OwinHost 参数来切换 Startup****
+****根据 Friendly Name 使用配置文件或者 OwinHost 参数来切换 Startup****
 
       <appsettings>
         <add key="owin:appStartup" value="Production">
@@ -347,18 +328,6 @@ Web Application 比类库使用起来轻松多了，你可以直接运行和调�
 
 ### 小结
 
-&gt; 花了好久才最终完成这篇博客，为大家讲解了 Katana 的世界，那么接下来我将继续 OWIN &amp; Katana 之旅，探索 Middleware 的创建，谢谢大家支持。
+> 这篇博客为大家讲解了 Katana 的世界，那么接下来我将继续 OWIN &amp; Katana 之旅，探索 Middleware 的创建，谢谢大家支持。
 
-[1]: http://www.cnblogs.com/OceanEyes/p/thinking-in-asp-net-mvc-what-is-owin.html
-[2]: http://images0.cnblogs.com/blog/299214/201506/090841317854511.png
-[3]: http://images0.cnblogs.com/blog/299214/201506/090841323169840.png
-[4]: http://images0.cnblogs.com/blog/299214/201506/090841333322784.png
-[5]: http://images0.cnblogs.com/blog/299214/201506/090841339264600.png
-[6]: http://images0.cnblogs.com/blog/299214/201506/090841344736700.png
-[7]: http://images0.cnblogs.com/blog/299214/201506/090841357383186.png
-[8]: http://images0.cnblogs.com/blog/299214/201506/090841371912430.png
-[9]: http://images0.cnblogs.com/blog/299214/201506/090841377546002.png
-[10]: http://images0.cnblogs.com/blog/299214/201506/090841381296817.png
-[11]: http://images0.cnblogs.com/blog/299214/201506/090841385194403.png
-[12]: http://images0.cnblogs.com/blog/299214/201506/090841392696031.png
-  </idictionary<string,></startup></add></string,></appfunc,></idictionary<string,></solution></startup></string,></appfunc,></idictionary<string,></https:>
+

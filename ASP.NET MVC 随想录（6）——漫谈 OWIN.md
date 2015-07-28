@@ -1,17 +1,15 @@
 
-
-
-# ASP.NET MVC 随想录——漫谈 OWIN 
+# ASP.NET MVC 随想录（6）——漫谈 OWIN 
 
 ## 什么是 OWIN
 
 OWIN 是 Open Web Server Interface for .NET 的首字母缩写，他的定义如下：
 
-OWIN 在.NET Web Servers 与 Web Application 之间定义了一套标准接口，OWIN 的目标是用于解耦 Web Server 和 Web Application。基于此标准，鼓励开发者开发简单、灵活的模块，从而推进.NET Web Development 开源生态系统的发展。
+> OWIN 在.NET Web Servers 与 Web Application 之间定义了一套标准接口，OWIN 的目标是用于解耦 Web Server 和 Web Application。基于此标准，鼓励开发者开发简单、灵活的模块，从而推进.NET Web Development 开源生态系统的发展。
 
 正如你看到的这样，OWIN 是接口、契约，而非具体的代码实现，仅仅是规范([**specifications**][1])，所以要实现自定义基于 OWIN 的 Web Server 必须要实现此规范。
 
-历时两年（2010-2012），OWIN 的规范终于完成并且当前版本是 1.0，在 **OWIN****的官网**上可以看到更具体的信息。
+历时两年（2010-2012），OWIN 的规范终于完成并且当前版本是 1.0，在 OWIN 的官网上可以看到更具体的信息。
 
 ## 为什么我们需要 OWIN
 
@@ -34,7 +32,7 @@ OWIN 在.NET Web Servers 与 Web Application 之间定义了一套标准接口�
 
 如下图所示 ASP.NET Architecture：
 
-![][2]
+![](images/Chapter6/2.png)
 
 打开 IIS，你会发现他提供了非常丰富的功能：缓存、身份验证、压缩、加密等。但随着移动互联网蓬勃的发展，特别是 HTML 5 越来越成熟的今天，我们看到越来越多的操作发生在客户端，而不是沉重的从服务器产生 HTML 返回，**更多的是通过异步 ****AJAX**** 返回原生的数据**。同理，对于 APP 来说我们只需要 Mobile Service 返回数据。显然  **IIS 显得笨重了点，而且 IIS 作为微软产品系的一环，耦合程度太高。所以我们迫切需要轻量、快速、可扩展的宿主来承载 Web Application 和 Web Service。**
 
@@ -45,7 +43,7 @@ IIS 必须是安装并运行在 Windows 操作系统中，这是微软产品的�
 * IIS 往往和操作系统（Windows Server）绑定在一起，这意味着对于一些新功能如 WebSocket Protocol&nbsp;，我们不得不等待操作系统 Windows Sever 2012、Windows 8 的发布（IIS 8.0）。
 * 为了使用 WebSocket 这类新特性，他仅被 **IIS 8.0** 支持，如下所示：
 
-![][3]
+![](images/Chapter6/3.png)
 
 这时你不得不去升级 IIS，但升级操作系统可能会引发旧系统的不稳定性，所以要想平稳的升级 IIS 并不是简单的。
 
@@ -53,7 +51,7 @@ IIS 必须是安装并运行在 Windows 操作系统中，这是微软产品的�
 
 正是由于微软产品系紧耦合的关系，才造成跨平台上的不足，这也是被饱受诟病。**所以我们需要****OWIN 来解耦，在面向对象的世界里，接口往往是解耦的关键，如下图所示：**
 
-![][4]
+![](images/Chapter6/4.png)
 
 使用 OWIN，Web Framework 不再依赖 IIS 和 OS，这意味着你能使用任何你想的来替换 IIS(比如：Katana 或者 Nowin)，并且在必要时随时升级，而不是更新操作系统。当然，如果你需要的话，你可以构建自定义的宿主和 Pipeline 去处理 Http 请求。
 
@@ -67,7 +65,7 @@ IIS 必须是安装并运行在 Windows 操作系统中，这是微软产品的�
 
 实际上，OWIN 的规范非常简单，他定义了一系列的层（Layer），并且他们的顺序是以堆（Stack）的形式定义，如下所示。OWIN 中的接口被称之为应用程序委托或者 AppFunc，用来在这些层之间通信。
 
-![][5]
+![](images/Chapter6/5.png)
 
 OWIN 定义了 4 层：
 
@@ -83,278 +81,15 @@ Application：这是具体的应用程序代码，可能在 Web Framework 之上
 
 OWIN 规范另一个重要的组成部分是接口的定义，用于 Server 和 Middleware 的交互。**他并不是严格意义上的接口，而是一个委托并且每个** **OWIN 中间件组件必须提供。**
 
-![][6]
+![](images/Chapter6/6.png)
 
 从字面上理解，每个 OWIN 中间件在必须有一个方法接受类型了 IDictionary<string,object>的变量（俗称环境字典），然后必须返回 Task 来异步执行。
 
 ### Environment Dictionary
 
 环境字典包含了 Request、Response 所有信息以及 Server State。通过 Pipeline，每个中间件组件和层都可以添加额外的信息，但环境字典定义了一系列强制必须存在的 Key，如下所示：
-
-**Request Data:**
-
-| ----- |
-|
-
-`Required`
-
- |
-
-`Key Name`
-
- |
-
-Value Description
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestBody"`
-
- |
-
-A&nbsp;Stream&nbsp;with the request body, if any.&nbsp;Stream.Null&nbsp;MAY be used as a placeholder if there is no request body. See&nbsp;[Request Body][7].
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestHeaders"`
-
- |
-
-An&nbsp;IDictionary<string, string[]="">&nbsp;of request headers.&nbsp; See&nbsp;[Headers][8].
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestMethod"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the HTTP request method of the request (e.g.,&nbsp;`"GET"`,&nbsp;`"POST"`).
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestPath"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the request path. The path MUST be relative to the "root" of the application delegate; see&nbsp;[Paths][9].
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestPathBase"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the portion of the request path corresponding to the "root" of the application delegate; see&nbsp;[Paths][9].
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestProtocol"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the protocol name and version (e.g.&nbsp;`"`HTTP/1.0`"`&nbsp;or&nbsp;`"`HTTP/1.1`"`).
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestQueryString"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the query string component of the HTTP request URI, without the leading "?" (e.g.,&nbsp;`"foo=bar&amp;baz=quux"`). The value may be an empty string.
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.RequestScheme"`
-
- |
-
-A&nbsp;`string`&nbsp;containing the URI scheme used for the request (e.g.,&nbsp;`"http"`,&nbsp;`"https"`); see&nbsp;[URI Scheme][10].
-
- |
-
-**Response Data:**
-
-| ----- |
-|
-
-`Required`
-
- |
-
-`Key Name`
-
- |
-
-Value Description
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.ResponseBody"`
-
- |
-
-A&nbsp;Stream&nbsp;used to write out the response body, if any. See&nbsp;[Response Body][11].
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.ResponseHeaders"`
-
- |
-
-An IDictionary<string, string[]=""> of response headers.&nbsp; See&nbsp;[Headers][8].
-
- |
-|
-
-`No`
-
- |
-
-`"owin.ResponseStatusCode"`
-
- |
-
-An optional&nbsp;`int`&nbsp;containing the HTTP response status code as defined in&nbsp;[RFC 2616][12]&nbsp;section 6.1.1. The default is 200.
-
- |
-|
-
-`No`
-
- |
-
-`"owin.ResponseReasonPhrase"`
-
- |
-
-An optional&nbsp;`string`&nbsp;containing the reason phrase associated the given status code. If none is provided then the server SHOULD provide a default as described in&nbsp;[RFC 2616][12]&nbsp;section 6.1.1
-
- |
-|
-
-`No`
-
- |
-
-`"owin.ResponseProtocol"`
-
- |
-
-An optional&nbsp;`string`&nbsp;containing the protocol name and version (e.g.&nbsp;`"`HTTP/1.0`"`&nbsp;or&nbsp;`"`HTTP/1.1`"`). If none is provided then the"owin.RequestProtocol"&nbsp;key's value is the default. &nbsp;&nbsp;
-
- |
-
-**Other Data:**
-
-| ----- |
-|
-
-`Required`
-
- |
-
-`Key Name`
-
- |
-
-Value Description
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.CallCancelled"`
-
- |
-
-A&nbsp;CancellationToken&nbsp;indicating if the request has been cancelled/aborted. See&nbsp;[Request Lifetime][13]. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;
-
- |
-|
-
-`Yes`
-
- |
-
-`"owin.Version"`
-
- |
-
-The&nbsp;string&nbsp;`"1.0"`&nbsp;indicating OWIN version. See&nbsp;[Versioning][14].
-
- |
+![](images/Chapter6/key.png)
 
 ## 小结
-
-&gt; 这些规范看起来可能简单到微不足道，但 OWIN 的思想就是简单、灵活——通过要求 OWIN 中间件只依赖 AppFun 类型，为开发基于 OWIN 的中间件提供了的最低门槛。同时，通过使用环境字典在各个中间件之间进行信息的传递，而非传统 ASP.NET（System.Web）中使用 HttpContext 贯穿 ASP.NET 整个生命周期来传递。
-&gt;
-&gt; 既然 OWIN 是规范，而非真正实现，所以是无法使用在项目中的，若要使用 OWIN，必须要实现他，所以这也是接下来我想聊的，OWIN 的实现：Katana 。
-
-[1]: http://owin.org/spec/spec/owin-1.0.0.html
-[2]: http://images0.cnblogs.com/blog/299214/201505/312142166738660.png
-[3]: http://images0.cnblogs.com/blog/299214/201505/312142185165490.png
-[4]: http://images0.cnblogs.com/blog/299214/201505/312142194232634.png
-[5]: http://images0.cnblogs.com/blog/299214/201505/312142198912477.png
-[6]: http://images0.cnblogs.com/blog/299214/201505/312142202829061.png
-[7]: http://owin.org/spec/spec/owin-1.0.0.html#_3.4._Request_body,
-[8]: http://owin.org/spec/spec/owin-1.0.0.html#_Request_body_stream,
-[9]: http://owin.org/spec/spec/owin-1.0.0.html#Paths
-[10]: http://owin.org/spec/spec/owin-1.0.0.html#URIScheme
-[11]: http://owin.org/spec/spec/owin-1.0.0.html#_ResultParameters
-[12]: http://www.ietf.org/rfc/rfc2616.txt
-[13]: http://owin.org/spec/spec/owin-1.0.0.html#URIReconstruction
-[14]: http://owin.org/spec/spec/owin-1.0.0.html#_5._Versioning
-  </string,></string,></string,object>
+> 这些规范看起来可能简单到微不足道，但 OWIN 的思想就是简单、灵活——通过要求 OWIN 中间件只依赖 AppFun 类型，为开发基于 OWIN 的中间件提供了的最低门槛。同时，通过使用环境字典在各个中间件之间进行信息的传递，而非传统 ASP.NET（System.Web）中使用 HttpContext 贯穿 ASP.NET 整个生命周期来传递。
+> 既然 OWIN 是规范，而非真正实现，所以是无法使用在项目中的，若要使用 OWIN，必须要实现他，所以这也是接下来我想聊的，OWIN 的实现：Katana 。
