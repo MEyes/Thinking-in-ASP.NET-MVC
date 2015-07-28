@@ -1,2 +1,3 @@
-# Thinking-in-ASP.NET-MVC
-ASP.NET MVC 随想录
+#序
+
+ASP.NET MVC 自从问世以来，极大的吸引了开发者。随着技术的更新，越来越多的新功能被加到了ASP.NET MVC中。基于此，我想写一套教程，面向广大的开发人员，讲解 ASP.NET MVC 中各个功能，故该系列名为 ASP.NET MVC 随想录。
